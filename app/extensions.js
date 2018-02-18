@@ -664,6 +664,9 @@ module.exports.init = () => {
           geth.stdin.write(pwd + '\n')
         }
         count = count + 1
+        if (count == 2) {
+          geth.stdin.end()
+        }
       })
     })
   } else {
