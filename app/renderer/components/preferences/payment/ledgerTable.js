@@ -62,6 +62,10 @@ class LedgerTable extends ImmutableComponent {
     return urlUtil.getHostPattern(synopsis.get('publisherKey'))
   }
 
+  getDisplayedSiteName (siteName) {
+    return (siteName.length > 45 ? (siteName.substr(0, 45) + '...') : siteName)
+  }
+
   getVerifiedIcon (synopsis) {
     return <span className={css(
       styles.verified,
@@ -163,6 +167,7 @@ class LedgerTable extends ImmutableComponent {
     const percentage = pinned ? this.pinPercentageValue(synopsis) : synopsis.get('percentage')
     const publisherKey = synopsis.get('publisherKey')
     const siteName = synopsis.get('siteName')
+    const siteDisplayName = this.getDisplayedSiteName(siteName)
     const defaultAutoInclude = this.enabledForSite(synopsis)
 
     const rowRefName = 'rowPercentage_' + publisherKey
@@ -183,7 +188,7 @@ class LedgerTable extends ImmutableComponent {
                 ? <img className={css(styles.siteData__anchor__icon_favicon)} src={faviconURL} alt='' onError={this.onFaviconError.bind(null, faviconURL, publisherKey)} />
                 : <span className={css(styles.siteData__anchor__icon_default)}><span className={globalStyles.appIcons.defaultIcon} /></span>
             }
-            <span className={css(styles.siteData__anchor__url)} data-test-id='siteName'>{siteName}</span>
+            <span className={css(styles.siteData__anchor__url)} title={siteName} data-test-id='siteName'>{siteDisplayName}</span>
           </a>
         </div>,
         value: publisherKey
