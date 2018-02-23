@@ -545,6 +545,18 @@ const windowActions = {
   },
 
   /**
+   * Used for adding a site to the publisher
+   * list via the Bookmark Manager or site history
+   * @param siteKey
+   */
+  addToPublisherList: function (siteKey) {
+    dispatch({
+      actionType: windowConstants.WINDOW_ADD_TO_PUBLISHER_LIST,
+      siteKey
+    })
+  },
+
+  /**
    * Dispatches a message to set context menu detail.
    * If set, also indicates that the context menu is shown.
    * @param {Object} detail - The context menu detail

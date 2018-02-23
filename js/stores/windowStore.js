@@ -26,6 +26,7 @@ const windowActions = require('../actions/windowActions')
 const bookmarkFoldersState = require('../../app/common/state/bookmarkFoldersState')
 const bookmarksState = require('../../app/common/state/bookmarksState')
 const bookmarkUtil = require('../../app/common/lib/bookmarkUtil')
+const ledgerApi = require('../../app/browser/api/ledger')
 
 let windowState = Immutable.fromJS({
   activeFrameKey: null,
@@ -469,6 +470,19 @@ const doAction = (action) => {
       }
     case windowConstants.WINDOW_ON_BOOKMARK_FOLDER_CLOSE:
       windowState = windowState.delete('bookmarkFolderDetail')
+      break
+    case windowConstants.WINDOW_ADD_TO_PUBLISHER_LIST:
+      {
+        if (action.siteKey) {
+          const options = {
+            duration: 0,
+            revisitP: 0,
+            ignoreMinTime: true
+          }
+          ledgerApi.saveVisit(action.siteKey, options)
+        }
+        break
+      }
       break
     case windowConstants.WINDOW_AUTOFILL_SELECTION_CLICKED:
       ipc.send('autofill-selection-clicked', action.tabId, action.value, action.frontEndId, action.index)

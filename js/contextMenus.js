@@ -338,9 +338,20 @@ const siteSingleDetailTemplate = (siteKey, type, activeFrame) => {
               windowActions.editBookmark(siteKey)
             }
           }
-        },
-        CommonMenu.separatorMenuItem
+        }
       )
+      if (!isFolder) {
+        // Fallback to locale
+        template.push(
+          {
+            label: 'Add to Publisher List',
+            click: () => {
+              windowActions.addToPublisherList(siteKey)
+            }
+          }
+        )
+      }
+      template.push(CommonMenu.separatorMenuItem)
     }
 
     template.push({
