@@ -246,6 +246,14 @@ const ledgerReducer = (state, action, immutableAction) => {
         ledgerApi.paymentPresent(state, action.get('tabId'), action.get('present'))
         break
       }
+    case appConstants.APP_ON_ADD_TO_PUBLISHER_LIST:
+      {
+        const siteKey = action.get('siteKey').split('|')[0]
+        if (siteKey) {
+          ledgerApi.addNewLocation(state, siteKey)
+        }
+        break
+      }
     case appConstants.APP_ON_ADD_FUNDS_CLOSED:
       {
         ledgerApi.addFoundClosed(state)

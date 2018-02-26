@@ -1705,6 +1705,14 @@ const appActions = {
     })
   },
 
+  addPublisherToSynopsis: function (siteKey, tabId) {
+    dispatch({
+      actionType: appConstants.APP_ON_ADD_TO_PUBLISHER_LIST,
+      siteKey,
+      tabId
+    })
+  },
+
   onChangeAddFundsDialogStep: function (page, currency = 'BAT') {
     dispatch({
       actionType: appConstants.APP_ON_CHANGE_ADD_FUNDS_DIALOG_STEP,

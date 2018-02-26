@@ -303,6 +303,7 @@ const siteDetailTemplateInit = (state, siteKey, type) => {
 
   const activeFrame = frameStateUtil.getActiveFrame(state) || Immutable.Map()
   const label = getLabel(siteDetail, activeFrame, type)
+  const tabId = activeFrame.get('tabId')
 
   if (type !== siteTags.BOOKMARK_FOLDER) {
     const location = siteDetail.get('location')
@@ -335,9 +336,20 @@ const siteDetailTemplateInit = (state, siteKey, type) => {
               windowActions.editBookmark(siteKey)
             }
           }
-        },
-        CommonMenu.separatorMenuItem
+        }
       )
+      template.push(CommonMenu.separatorMenuItem)
+      if (!isFolder) {
+        template.push(
+          {
+            label: locale.translation('addToPublisherList'),
+            click: () => {
+              appActions.addPublisherToSynopsis(siteKey, tabId)
+            }
+          },
+          CommonMenu.separatorMenuItem
+        )
+      }
     }
 
     template.push(

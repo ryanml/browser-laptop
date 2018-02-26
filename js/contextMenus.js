@@ -296,6 +296,7 @@ const siteMultipleDetailTemplate = (data, type, activeFrame) => {
 const siteSingleDetailTemplate = (siteKey, type, activeFrame) => {
   const template = []
   const state = appStoreRenderer.state
+  const tabId = activeFrame.get('tabId')
   let isFolder = type === siteTags.BOOKMARK_FOLDER
   let siteDetail
 
@@ -338,9 +339,20 @@ const siteSingleDetailTemplate = (siteKey, type, activeFrame) => {
               windowActions.editBookmark(siteKey)
             }
           }
-        },
-        CommonMenu.separatorMenuItem
+        }
       )
+      template.push(CommonMenu.separatorMenuItem)
+      if (!isFolder) {
+        template.push(
+          {
+            label: locale.translation('addToPublisherList'),
+            click: () => {
+              appActions.addPublisherToSynopsis(siteKey, tabId)
+            }
+          },
+          CommonMenu.separatorMenuItem
+        )
+      }
     }
 
     template.push({
