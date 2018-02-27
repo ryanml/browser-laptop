@@ -601,7 +601,8 @@ class AboutPreferences extends React.Component {
       settings.SITE_ISOLATION_ENABLED,
       settings.SEND_CRASH_REPORTS,
       settings.SPELLCHECK_ENABLED,
-      settings.SPELLCHECK_LANGUAGES
+      settings.SPELLCHECK_LANGUAGES,
+      settings.NOTIFICATIONS_ENABLED
     ]
     if (settingsRequiringRestart.includes(key)) {
       ipc.send(messages.PREFS_RESTART, key, value)

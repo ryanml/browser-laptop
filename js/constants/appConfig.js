@@ -213,6 +213,7 @@ module.exports = {
     'advanced.toolbar-ui-scale': 'normal',
     'advanced.swipe-nav-distance': 101,
     'advanced.payments-allow-promotions': true,
+    'advanced.notifications-enabled': true,
     'shutdown.clear-history': false,
     'shutdown.clear-downloads': false,
     'shutdown.clear-cache': false,
