@@ -14,6 +14,7 @@ const settings = require('../../../js/constants/settings')
 const ledgerState = require('../../common/state/ledgerState')
 const pageDataState = require('../../common/state/pageDataState')
 const updateState = require('../../common/state/updateState')
+const tabState = require('../../common/state/tabState')
 
 // Utils
 const ledgerApi = require('../../browser/api/ledger')
@@ -30,6 +31,10 @@ const ledgerReducer = (state, action, immutableAction) => {
   ) {
     action = immutableAction || makeImmutable(action)
     actionType = action.get('actionType')
+  }
+
+  if (typeof actionType !== 'undefined') {
+    console.log('type:', actionType)
   }
 
   switch (actionType) {
@@ -323,6 +328,32 @@ const ledgerReducer = (state, action, immutableAction) => {
         }
         break
       }
+    case windowConstants.WINDOW_FRAME_MOUSE_LEAVE:
+      /*
+      {
+        const tabId = action.get('tabId')
+
+        if (typeof tabId === 'undefined') {
+          break
+        }
+
+        const location = tabState.getLocation(state, tabId)
+
+        console.log('mouseLeavey', tabId, location)
+
+        if (location) {
+          state = ledgerApi.pageDataChanged(state, {
+            location: location,
+            tabId: tabId
+          })
+        }
+        
+        let windowCount = BrowserWindow.getAllWindows().filter((win) => win.isFocused()).length
+        console.log('mouseLeave', windowCount)
+        state = ledgerApi.pageDataChanged(state, {}, true)
+        break
+      }
+      */
     case windowConstants.WINDOW_SET_FOCUSED_FRAME:
       {
         if (!getSetting(settings.PAYMENTS_ENABLED)) {
