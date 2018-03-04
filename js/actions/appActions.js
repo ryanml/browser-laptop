@@ -1684,6 +1684,13 @@ const appActions = {
     })
   },
 
+  addPublisherToLedger: function (location) {
+    dispatch({
+      actionType: appConstants.APP_ADD_PUBLISHER_TO_LEDGER,
+      location
+    })
+  },
+
   onBootStateFile: function () {
     dispatch({
       actionType: appConstants.APP_ON_BOOT_STATE_FILE

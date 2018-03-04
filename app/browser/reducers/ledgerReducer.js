@@ -14,6 +14,7 @@ const settings = require('../../../js/constants/settings')
 const ledgerState = require('../../common/state/ledgerState')
 const pageDataState = require('../../common/state/pageDataState')
 const updateState = require('../../common/state/updateState')
+const tabState = require('../../common/state/tabState')
 
 // Utils
 const ledgerApi = require('../../browser/api/ledger')
@@ -163,6 +164,19 @@ const ledgerReducer = (state, action, immutableAction) => {
               break
             }
         }
+        break
+      }
+    case appConstants.APP_ADD_PUBLISHER_TO_LEDGER:
+      {
+        const location = action.get('location')
+        const tabId = tabState.getActiveTabId(state)
+
+        if (!location || !tabId) {
+          break
+        }
+
+        state = ledgerApi.addNewLocation(state, location, tabId, false, true)
+        state = ledgerApi.pageDataChanged(state, {}, true)
         break
       }
     case appConstants.APP_REMOVE_SITE_SETTING:

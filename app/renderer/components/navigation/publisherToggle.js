@@ -51,6 +51,9 @@ class PublisherToggle extends React.Component {
   onAuthorizePublisher () {
     if (this.props.isVisibleInLedger) {
       appActions.changeSiteSetting(this.props.hostPattern, 'ledgerPayments', !this.props.isEnabledForPaymentsPublisher)
+    } else {
+      appActions.addPublisherToLedger(this.props.location)
+      appActions.changeSiteSetting(this.props.hostPattern, 'ledgerPayments', true)
     }
   }
 
@@ -68,6 +71,7 @@ class PublisherToggle extends React.Component {
     props.isVerifiedPublisher = ledgerState.getPublisherOption(state, publisherKey, 'verified')
 
     // used in functions
+    props.location = location
     props.hostPattern = getHostPattern(publisherKey)
 
     return props

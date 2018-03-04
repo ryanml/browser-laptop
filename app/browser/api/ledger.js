@@ -681,14 +681,16 @@ const excludeP = (publisherKey, callback) => {
   })
 }
 
-const addSiteVisit = (state, timestamp, location, tabId) => {
+const addSiteVisit = (state, timestamp, location, tabId, manualAdd = false) => {
   if (!synopsis) {
     return state
   }
 
   location = pageDataUtil.getInfoKey(location)
   const locationData = ledgerState.getLocation(state, location)
-  const duration = new Date().getTime() - timestamp
+  const minimumVisitTime = getSetting(settings.PAYMENTS_MINIMUM_VISIT_TIME)
+  const duration = manualAdd ? parseInt(minimumVisitTime) : new Date().getTime() - timestamp
+
   if (_internal.verboseP) {
     console.log(
       `locations[${location}]=${JSON.stringify(locationData, null, 2)} ` +
@@ -703,7 +705,7 @@ const addSiteVisit = (state, timestamp, location, tabId) => {
   let publisherKey = locationData.get('publisher')
   let revisitP = false
 
-  if (duration >= getSetting(settings.PAYMENTS_MINIMUM_VISIT_TIME)) {
+  if (duration >= minimumVisitTime) {
     if (!visitsByPublisher[publisherKey]) {
       visitsByPublisher[publisherKey] = {}
     }
@@ -714,7 +716,7 @@ const addSiteVisit = (state, timestamp, location, tabId) => {
       }
     }
 
-    revisitP = visitsByPublisher[publisherKey][location].tabIds.indexOf(tabId) !== -1
+    revisitP = manualAdd ? false : visitsByPublisher[publisherKey][location].tabIds.indexOf(tabId) !== -1
     if (!revisitP) {
       visitsByPublisher[publisherKey][location].tabIds.push(tabId)
     }
@@ -826,18 +828,25 @@ const shouldTrackTab = (state, tabId) => {
   return !isPrivate && !tabFromState.isEmpty() && ledgerUtil.shouldTrackView(tabFromState)
 }
 
-const addNewLocation = (state, location, tabId = tabState.TAB_ID_NONE, keepInfo = false) => {
+const addNewLocation = (state, location, tabId = tabState.TAB_ID_NONE, keepInfo = false, manualAdd = false) => {
   // We always want to have the latest active tabId
   const currentTabId = pageDataState.getLastActiveTabId(state)
   state = pageDataState.setLastActiveTabId(state, tabId)
-  if (location === currentUrl) {
+  if (location === currentUrl && !manualAdd) {
     return state
   }
 
   // Save previous recorder page
   if (currentUrl !== locationDefault && currentTabId != null && currentTabId !== tabState.TAB_ID_NONE) {
     if (shouldTrackTab(state, currentTabId)) {
-      state = addSiteVisit(state, currentTimestamp, currentUrl, currentTabId)
+      if (manualAdd) {
+        const minimumVisits = getSetting(settings.PAYMENTS_MINIMUM_VISITS)
+        for (let v = 0; v < minimumVisits; v++) {
+          state = addSiteVisit(state, currentTimestamp, currentUrl, currentTabId, manualAdd)
+        }
+      } else {
+        state = addSiteVisit(state, currentTimestamp, currentUrl, currentTabId)
+      }
     }
   }
 
@@ -2829,7 +2838,8 @@ const getMethods = () => {
     checkReferralActivity,
     setPublishersOptions,
     referralCheck,
-    roundtrip
+    roundtrip,
+    addNewLocation
   }
 
   let privateMethods = {}
