@@ -600,6 +600,11 @@ const createMenu = (state) => {
 
 const setMenuItemAttribute = (state, label, key, value) => {
   const systemMenuItem = menuUtil.getMenuItem(appMenu, label)
+
+  if (systemMenuItem == null) {
+    return
+  }
+
   systemMenuItem[key] = value
 
   // Update in-memory menu template (Windows)
