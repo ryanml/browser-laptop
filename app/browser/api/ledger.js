@@ -1151,6 +1151,7 @@ const fileRecoveryKeys = (state, recoveryKeyFile) => {
 }
 
 const recoverKeys = (state, useRecoveryKeyFile, key) => {
+  console.log('starting', '$$$'.repeat(20))
   let recoveryKey
 
   if (useRecoveryKeyFile) {
@@ -1212,6 +1213,7 @@ const onWalletRecovery = (state, error, result) => {
     state = aboutPreferencesState.setRecoveryStatus(state, true)
   }
 
+  console.log('finishing', '$$$'.repeat(20))
   return state
 }
 
@@ -1706,7 +1708,9 @@ const getStateInfo = (state, parsedData) => {
   state = ledgerState.mergeInfoProp(state, newInfo)
 
   if (info) {
+    console.log('state is', state)
     state = ledgerState.mergeInfoProp(state, info)
+    console.log('state is', state)
     state = module.exports.generatePaymentData(state)
   }
 
@@ -1849,6 +1853,9 @@ const setNewTimeUntilReconcile = (newReconcileTime = null) => {
 }
 
 const onWalletProperties = (state, body) => {
+  console.log('receiving wallet props\n')
+  console.log('body', body)
+  console.log('-'.repeat(50))
   const currentStatus = ledgerState.getAboutProp(state, 'status')
   if (currentStatus === ledgerStatuses.SERVER_PROBLEM) {
     state = ledgerState.setAboutProp(state, 'status', '')
@@ -2069,7 +2076,8 @@ const callback = (err, result, delayTime) => {
 const onCallback = (state, result, delayTime) => {
   let results
   let entries = client && client.report()
-
+  console.log('result is\n', JSON.stringify(result.toJS()))
+  console.log('---------------------------------------------------------')
   if (!result) {
     run(state, delayTime)
     return state
@@ -2088,7 +2096,8 @@ const onCallback = (state, result, delayTime) => {
 
   const seed = result.getIn(['properties', 'wallet', 'keyinfo', 'seed'])
   if (seed) {
-    result = result.setIn(['properties', 'wallet', 'keyinfo', 'seed'], uintKeySeed(seed))
+    const setSeed = isImmutable(seed) ? seed.toJS() : seed
+    result = result.setIn(['properties', 'wallet', 'keyinfo', 'seed'], uintKeySeed(setSeed))
   }
 
   const regularResults = result.toJS()
@@ -2147,7 +2156,6 @@ const onCallback = (state, result, delayTime) => {
       delete regularResults.publishersV2
     }
   }
-
   // persist the new ledger state
   muonWriter(statePath, regularResults)
 

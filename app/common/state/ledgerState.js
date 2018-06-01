@@ -306,7 +306,7 @@ const ledgerState = {
       data = data.set('rulesV2Stamp', data.getIn(['rulesetV2', 'rulesV2Stamp']))
       data = data.delete('rulesetV2')
     }
-
+    console.log('new data is', data)
     const oldData = ledgerState.getInfoProps(state)
     return state.setIn(['ledger', 'info'], oldData.merge(data))
   },

@@ -72,6 +72,9 @@ module.exports.request = (options, callback) => {
     if (responseType !== 'text') body = Buffer.from(body, 'binary')
     if (responseType === 'blob') body = 'data:' + rsp.headers['content-type'] + ';base64,' + body.toString('base64')
 
+    console.log('url is', options.url)
+    console.log('body is', body)
+    console.log('------------------------------------------------\n')
     callback(null, rsp, body)
   })
 }
