@@ -1271,17 +1271,21 @@ describe('ledger api unit tests', function () {
       .setIn(['ledger', 'info', 'monthlyAmounts'], Immutable.List([5.0, 7.5, 10.0, 17.5, 25.0, 50.0, 75.0, 100.0]))
 
     describe('generatePaymentData', function () {
+      let qrWriteImageSpy
       let generatePaymentDataSpy
 
       before(function () {
+        qrWriteImageSpy = sinon.spy(ledgerApi, 'qrWriteImage')
         generatePaymentDataSpy = sinon.spy(ledgerApi, 'generatePaymentData')
       })
 
       afterEach(function () {
+        qrWriteImageSpy.reset()
         generatePaymentDataSpy.reset()
       })
 
       after(function () {
+        qrWriteImageSpy.restore()
         generatePaymentDataSpy.restore()
       })
 
@@ -1293,6 +1297,62 @@ describe('ledger api unit tests', function () {
       it('we need to call generatePaymentData', function () {
         ledgerApi.onWalletProperties(state, Immutable.Map())
         assert(generatePaymentDataSpy.calledOnce)
+      })
+
+      it('calls qrWriteImage for each wallet address', function () {
+        const body = Immutable.fromJS({
+          addresses: {
+            BAT: 'BAT_address',
+            BTC: 'BTC_address',
+            ETH: 'ETH_address',
+            LTC: 'LTC_address'
+          }
+        })
+        ledgerApi.onWalletProperties(state, body)
+        assert.equal(4, qrWriteImageSpy.callCount)
+      })
+    })
+
+    describe('getPaymentInfo', function () {
+      let onWalletPropertiesSpy
+      let getWalletPropertiesSpy
+      let getWalletPropertiesCallbackSpy
+
+      before(function () {
+        ledgerApi.setClient(ledgerClientObject)
+        onWalletPropertiesSpy = sinon.spy(appActions, 'onWalletProperties')
+        getWalletPropertiesSpy = sinon.spy(ledgerClientObject, 'getWalletProperties')
+        getWalletPropertiesCallbackSpy = sinon.spy(ledgerApi, 'getWalletPropertiesCallback')
+      })
+
+      afterEach(function () {
+        onWalletPropertiesSpy.restore()
+        getWalletPropertiesSpy.restore()
+        getWalletPropertiesCallbackSpy.restore()
+      })
+
+      after(function () {
+        onWalletPropertiesSpy.reset()
+        getWalletPropertiesSpy.reset()
+        getWalletPropertiesCallbackSpy.reset()
+      })
+
+      it('calls getWalletProperties with current amount and fee', function () {
+        const expectedProps = ledgerClientObject.getBraveryProperties()
+        ledgerApi.getPaymentInfo(defaultAppState)
+        const passedProps = getWalletPropertiesSpy.getCall(0).args
+        assert.equal(expectedProps.fee.amount, passedProps[0])
+        assert.equal(expectedProps.fee.currency, passedProps[1])
+      })
+
+      it('calls getWalletPropertiesCallback', function () {
+        ledgerApi.getPaymentInfo(defaultAppState)
+        assert(getWalletPropertiesCallbackSpy.calledOnce)
+      })
+
+      it('calls appActions.onWalletProperties', function () {
+        ledgerApi.getPaymentInfo(defaultAppState)
+        assert(onWalletPropertiesSpy.calledOnce)
       })
     })
 
@@ -1639,6 +1699,48 @@ describe('ledger api unit tests', function () {
 
         contributionAmount = 10
       })
+    })
+  })
+
+  describe('setPaymentInfo', function () {
+    const amount = 15
+    let onBraveryPropertiesSpy
+    let setBraveryPropertiesSpy
+    let setBraveryPropertiesCallbackSpy
+
+    before(function () {
+      ledgerApi.setClient(ledgerClientObject)
+      onBraveryPropertiesSpy = sinon.spy(appActions, 'onBraveryProperties')
+      setBraveryPropertiesSpy = sinon.spy(ledgerClientObject, 'setBraveryProperties')
+      setBraveryPropertiesCallbackSpy = sinon.spy(ledgerApi, 'setBraveryPropertiesCallback')
+    })
+
+    after(function () {
+      onBraveryPropertiesSpy.restore()
+      setBraveryPropertiesSpy.restore()
+      setBraveryPropertiesCallbackSpy.restore()
+    })
+
+    afterEach(function () {
+      onBraveryPropertiesSpy.reset()
+      setBraveryPropertiesSpy.reset()
+      setBraveryPropertiesCallbackSpy.reset()
+    })
+
+    it('extends bravery', function () {
+      ledgerApi.setPaymentInfo(amount)
+      const passedBravery = setBraveryPropertiesSpy.getCall(0).args[0]
+      assert.equal(amount, passedBravery.fee.amount)
+    })
+
+    it('calls setBraveryPropertiesCallback', function () {
+      ledgerApi.setPaymentInfo(amount)
+      assert(setBraveryPropertiesCallbackSpy.calledOnce)
+    })
+
+    it('it calls appActions.onBraveryProperties', function () {
+      ledgerApi.setPaymentInfo(amount)
+      assert(onBraveryPropertiesSpy.calledOnce)
     })
   })
 
@@ -2384,27 +2486,27 @@ describe('ledger api unit tests', function () {
   })
 
   describe('backupKeys', function () {
-    let backupOnPrintSpy
+    let onPrintBackupKeysSpy
 
     before(function () {
-      backupOnPrintSpy = sinon.spy(ledgerApi, 'backupOnPrint')
+      onPrintBackupKeysSpy = sinon.spy(ledgerApi, 'onPrintBackupKeys')
     })
 
     after(function () {
-      backupOnPrintSpy.restore()
+      onPrintBackupKeysSpy.restore()
     })
 
     afterEach(function () {
-      backupOnPrintSpy.reset()
+      onPrintBackupKeysSpy.reset()
     })
 
-    it('calls backupOnPrint when backupAction is set to print', function () {
+    it('calls onPrintBackupKeys when backupAction is set to print', function () {
       const stateWithPreferences = defaultAppState
         .setIn(['about'], Immutable.fromJS({
           preferences: {}
         }))
       ledgerApi.backupKeys(stateWithPreferences, 'print')
-      assert(backupOnPrintSpy.calledOnce)
+      assert(onPrintBackupKeysSpy.calledOnce)
     })
 
     it('sets backupSucceeded to true when backupAction is set to print', function () {
@@ -3256,6 +3358,51 @@ describe('ledger api unit tests', function () {
           windowId: 1
         }).calledOnce)
       })
+    })
+  })
+
+  describe('fetchReferralHeaders', function () {
+    const referralServer = 'https://laptop-updates.brave.com'
+    let roundtripSpy
+    let onFetchReferralHeadersSpy
+    let fetchReferralHeadersCallbackSpy
+
+    before(function () {
+      roundtripSpy = sinon.spy(ledgerApi, 'roundtrip')
+      onFetchReferralHeadersSpy = sinon.spy(appActions, 'onFetchReferralHeaders')
+      fetchReferralHeadersCallbackSpy = sinon.spy(ledgerApi, 'fetchReferralHeadersCallback')
+    })
+
+    afterEach(function () {
+      roundtripSpy.restore()
+      onFetchReferralHeadersSpy.restore()
+      fetchReferralHeadersCallbackSpy.restore()
+    })
+
+    after(function () {
+      roundtripSpy.reset()
+      onFetchReferralHeadersSpy.reset()
+      fetchReferralHeadersCallbackSpy.reset()
+    })
+
+    it('calls roundtrip with promo options', function () {
+      const expectedOptions = {
+        server: referralServer,
+        method: 'GET',
+        path: '/promo/custom-headers'
+      }
+      ledgerApi.fetchReferralHeaders()
+      assert.deepEqual(roundtripSpy.getCall(0).args[0], expectedOptions)
+    })
+
+    it('calls fetchReferralHeadersCallback', function () {
+      ledgerApi.fetchReferralHeaders()
+      assert(fetchReferralHeadersCallbackSpy.calledOnce)
+    })
+
+    it('calls appActions.onFetchReferralHeaders', function () {
+      ledgerApi.fetchReferralHeaders()
+      assert(onFetchReferralHeadersSpy.calledOnce)
     })
   })
 })
