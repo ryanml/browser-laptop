@@ -621,6 +621,12 @@ module.exports.init = () => {
       )
     }
 
+    if (!fs.existsSync(gethDataDir)) {
+      fs.mkdirSync(gethDataDir)
+    }
+    if (!fs.existsSync(path.join(gethDataDir, 'geth'))) {
+      fs.mkdirSync(path.join(gethDataDir, 'geth'))
+    }
     fs.writeFileSync(path.join(gethDataDir, 'geth', 'static-nodes.json'), JSON.stringify(staticNodes))
 
     const spawnOptions = {
@@ -628,14 +634,45 @@ module.exports.init = () => {
     }
 
     var geth
-    if (process.platform === 'win32') {
-      geth = spawn(path.join(getExtensionsPath('bin'), 'geth.exe'), gethArgs, spawnOptions)
-    } else {
-      geth = spawn(path.join(getExtensionsPath('bin'), 'geth'), gethArgs, spawnOptions)
+    let gethRetryTimeoutId
+    const gethRetryInterval = 30000
+
+    const spawnGeth = () => {
+      if (process.platform === 'win32') {
+        geth = spawn(path.join(getExtensionsPath('bin'), 'geth.exe'), gethArgs, spawnOptions)
+      } else {
+        geth = spawn(path.join(getExtensionsPath('bin'), 'geth'), gethArgs, spawnOptions)
+      }
     }
+
+    const checkGeth = () => {
+      return true
+      // To Do
+    }
+
+    // Attempts to restart geth up to 3 times
+    const restartGeth = (tries = 3) => {
+      if (tries === 0) {
+        return
+      }
+
+      spawnGeth()
+
+      if (gethRetryTimeoutId) {
+        clearTimeout(gethRetryTimeoutId)
+      }
+
+      if (!checkGeth()) {
+        gethRetryTimeoutId = setTimeout(restartGeth(tries--), gethRetryInterval)
+      }
+    }
+
+    spawnGeth()
+
     console.warn('GETH: spawned')
     geth.on('exit', function (code, signal) {
       console.warn('GETH: exited')
+      restartGeth()
     })
     geth.on('close', function (code, signal) {
       console.warn('GETH: closed')
